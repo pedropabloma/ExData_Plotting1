@@ -1,16 +1,28 @@
-# Load RDS
-NEI <- readRDS("summarySCC_PM25.rds")
-SCC <- readRDS("Source_Classification_Code.rds")
+#
+# Please refer to the README.md file for an explanation on how I read the original #data
+#
 
-# Sample data for testing
-NEIsample <- NEI[sample(nrow(NEI), size=5000, replace=F), ]
+## Reading Relevent data
+data <- read.table('household_power_consumption.txt', header = T, sep = ';', stringsAsFactors = F, na.strings = '?', skip = 66636, nrow = 2880)
 
-# Subset data and append two years in one data frame
-MD <- subset(NEI, fips=='24510')
+colnames(data) <- c('Date', 'Time', 'Global_active_power', 'Global_reactive_power', 'Voltage', 'Global_intensity', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3')
 
-# Have total emissions from PM2.5 decreased in the Baltimore City, Maryland (fips == "24510") 
-# from 1999 to 2008? Use the base plotting system to make a plot answering this question.
-png(filename='plot2.png')
-barplot(tapply(X=MD$Emissions, INDEX=MD$year, FUN=sum), 
-                 main='Total Emission in Baltimore City, MD', xlab='Year', ylab=expression('PM'[2.5]))
+## Merging Date and Time columns into one vector with the appropriate format.
+datetime <- strptime(paste(data$Date, data$Time, sep = ' '), format = '%d/%m/%Y %H:%M:%S')
+
+## Build a new data frame with only the required data for plot 2
+data <- data.frame(datetime, data[,3:3])
+
+## Name the columns appropriately
+colnames(data) <- c('datetime', 'Global_Active_power')
+
+## Draw plot 2 in a png file
+png('plot2.png', bg = 'transparent')
+### Set days names to english
+       Sys.setlocale(category = "LC_TIME", locale = "en_GB.UTF-8")
+       with(data,
+              ### No need to specify xlabel since the default label
+              ### is the one needed
+              plot(datetime, Global_Active_power, type = 'l', ylab = 'Global Active Power (kilowatts)', xlab = '')
+       )
 dev.off()

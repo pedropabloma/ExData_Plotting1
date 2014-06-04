@@ -1,18 +1,14 @@
-# Load RDS
-NEI <- readRDS("summarySCC_PM25.rds")
-SCC <- readRDS("Source_Classification_Code.rds")
+#
+# Please refer to the README.md file for an explanation on how I read the original #data
+#
 
-# Sample data for testing
-NEIsample <- NEI[sample(nrow(NEI), size=1000, replace=F), ]
+## Reading Relevent data
+data <- read.table('household_power_consumption.txt', header = T, sep = ';', stringsAsFactors = F, na.strings = '?', skip = 66636, nrow = 2880)
 
-# Aggregate
-Emissions <- aggregate(NEI[, 'Emissions'], by=list(NEI$year), FUN=sum)
-Emissions$PM <- round(Emissions[,2]/1000,2)
+colnames(data) <- c('Date', 'Time', 'Global_active_power', 'Global_reactive_power', 'Voltage', 'Global_intensity', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3')
 
-# Have total emissions from PM2.5 decreased in the United States from 1999 to 2008? 
-# Using the base plotting system, make a plot showing the total PM2.5 emission from all sources 
-# for each of the years 1999, 2002, 2005, and 2008.
-png(filename='plot1.png')
-barplot(Emissions$PM, names.arg=Emissions$Group.1, 
-        main=expression('Total Emission of PM'[2.5]), xlab='Year', ylab=expression(paste('PM', ''[2.5], ' in Kilotons')))
+## Draw the histogram of plot 1 in a png file
+png('plot1.png', bg = 'transparent')
+       ### No need to specify ylab since the default label is the one needed
+       hist(data$Global_active_power, col = 'red', main = 'Global Active Power', xlab = 'Global Active Power (kilowatts)', ylim = c(0, 1200))
 dev.off()

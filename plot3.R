@@ -1,23 +1,28 @@
-# Load RDS
-require(ggplot2)
-NEI <- readRDS("summarySCC_PM25.rds")
-SCC <- readRDS("Source_Classification_Code.rds")
+#
+# Please refer to the README.md file for an explanation on how I read the original #data
+#
 
-# Sample data for testing
-NEIsample <- NEI[sample(nrow(NEI), size=5000, replace=F), ]
+## Reading Relevent data
+data <- read.table('household_power_consumption.txt', header = T, sep = ';', stringsAsFactors = F, na.strings = '?', skip = 66636, nrow = 2880)
 
-# Baltimore City, Maryland == fips
-MD <- subset(NEI, fips == 24510)
-MD$year <- factor(MD$year, levels=c('1999', '2002', '2005', '2008'))
+colnames(data) <- c('Date', 'Time', 'Global_active_power', 'Global_reactive_power', 'Voltage', 'Global_intensity', 'Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3')
 
-# Of the four types of sources indicated by the type (point, nonpoint, onroad, nonroad) variable, 
-# which of these four sources have seen decreases in emissions from 1999–2008 for Baltimore City? 
-# Which have seen increases in emissions from 1999–2008? 
-# Use the ggplot2 plotting system to make a plot answer this question.
-png('plot3.png', width=800, height=500, units='px')
-ggplot(data=MD, aes(x=year, y=log(Emissions))) + facet_grid(. ~ type) + guides(fill=F) +
-    geom_boxplot(aes(fill=type)) + stat_boxplot(geom ='errorbar') +
-    ylab(expression(paste('Log', ' of PM'[2.5], ' Emissions'))) + xlab('Year') + 
-    ggtitle('Emissions per Type in Baltimore City, Maryland') +
-    geom_jitter(alpha=0.10)
+## Merging Date and Time columns into one vector with the appropriate format.
+datetime <- strptime(paste(data$Date, data$Time, sep = ' '), format = '%d/%m/%Y %H:%M:%S')
+
+## Build a new data frame with only the required data for plot 3
+data <- data.frame(datetime, data[, 7:9])
+
+
+## Draw the histogram of plot 3 in a png file
+png('plot3.png', bg = 'transparent')
+       ### Set days names to english
+       Sys.setlocale(category = "LC_TIME", locale = "en_GB.UTF-8")
+       with(data,{
+               plot(Sub_metering_1 ~ datetime, col = c('black', 'red', 'blue'), type='l', xlab='', ylab='Energy sub metering')
+               lines(Sub_metering_2 ~ datetime, col = 'red')
+               lines(Sub_metering_3 ~ datetime, col = 'blue')
+               legend('topright', c('Sub_metering_1', 'Sub_metering_2', 'Sub_metering_3'), col=c('black', 'red', 'blue'), lty = 1, lwd = 1)
+              }
+       )
 dev.off()
